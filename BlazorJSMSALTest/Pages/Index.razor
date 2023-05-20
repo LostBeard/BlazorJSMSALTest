@@ -1,3 +1,41 @@
 ﻿@page "/"
 
-<h1>Hello, world!</h1>
+
+<div>
+    <div>
+        AppSettings Message Window context:
+    </div>
+    <div>
+        @MessageWindow
+    </div>
+    <div>
+        AppSettings Message Worker context:
+    </div>
+    <div>
+        @MessageWorker
+    </div>
+</div>
+
+@code {
+    string testKey = "Message";
+    string MessageWindow { get; set; } = "";
+    string MessageWorker { get; set; } = "";
+
+    [Inject]
+    WebWorkerService _webWorkerService { get; set; }
+
+    [Inject]
+    ITestService _testService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // get appsettings Message value in worker context
+        MessageWindow = await _testService.ReadAppSettingsValue(testKey);
+        StateHasChanged();
+        // get appsettings Message value in worker context
+        using var worker = await _webWorkerService.GetWebWorker();
+        var mathService = worker.GetService<ITestService>();
+        MessageWorker = await mathService.ReadAppSettingsValue(testKey);
+        StateHasChanged();
+    }
+}
